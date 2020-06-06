@@ -1,0 +1,52 @@
+version: '3.7'
+
+services:
+  main-service:
+    container_name: main-service
+    restart: always
+    build:
+      context: .
+      target: development
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - 3003:3000
+      - 9229:9229 # FOR DEBUG
+    command: npm run start:dev
+    env_file:
+      - ./config/environments/local.env
+    networks:
+      - main_network
+    depends_on:
+      - main-cache
+      - main-db
+
+  main-cache:
+    container_name: main-cache
+    image: bitnami/redis:latest
+    ports:
+      - 6379:6379
+    env_file: ./config/environments/local.env
+    environment:
+      REDIS_PASSWORD: "pass-cache"
+
+  main-db:
+    container_name: main-db
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    env_file: ./config/environments/local.env
+    environment:
+      MONGO_INITDB_DATABASE: main
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: QUr5yHLZWeq3mpVH
+    volumes:
+      - main-data:/data/db
+    restart: always
+
+networks:
+  main_network:
+
+volumes:
+  main-data:
